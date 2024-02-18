@@ -104,7 +104,7 @@ export default function TechnicalInterviewPage() {
       );
       mediaRecorderRef.current.start();
     }
-  }, [cameraLoaded, webcamRef, mediaRecorderRef]);
+  }, [capturing, cameraLoaded, webcamRef, mediaRecorderRef]);
 
   const handleStartCaptureClick = useCallback(() => {
     setCapturing(true);

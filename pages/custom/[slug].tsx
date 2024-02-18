@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { use, useCallback, useEffect, useRef, useState } from "react";
 import { RadioGroup } from "@headlessui/react";
 import Link from "next/link";
 import Webcam from "react-webcam";
@@ -41,10 +41,10 @@ export default function TechnicalInterviewPage() {
 
   const router = useRouter();
   const { slug } = router.query;
-  console.log("slug", slug);
 
   useEffect(() => {
-    setLoading(true);
+    console.log("slug", slug);
+    // setLoading(true);
     setRecordedChunks([]);
     setCapturing(false);
     setSeconds(150);
@@ -65,6 +65,10 @@ export default function TechnicalInterviewPage() {
     getNextQuestion,
     getPreviousQuestion,
   } = useKoopStore();
+
+  useEffect(() => {
+    console.log("customQuestions", customQuestions);
+  });
 
   //   const questionListName = slug?.toString().startsWith("pm")
   //   ? "product"
@@ -102,7 +106,7 @@ export default function TechnicalInterviewPage() {
       );
       mediaRecorderRef.current.start();
     }
-  }, [cameraLoaded, webcamRef, mediaRecorderRef]);
+  }, [capturing, cameraLoaded, webcamRef, mediaRecorderRef]);
 
   const handleStartCaptureClick = useCallback(() => {
     setCapturing(true);
