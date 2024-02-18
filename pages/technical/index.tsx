@@ -3,25 +3,20 @@ import React, { useState } from "react";
 import { RadioGroup } from "@headlessui/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useKoopStore } from "@/lib/koopStore";
 
 const interviewers = [
   {
     id: "SDE",
-    name: "John",
+    name: "",
     description: "Software Engineering",
     level: "L3",
   },
   {
     id: "PM",
-    name: "Richard",
+    name: "",
     description: "Product Management",
     level: "L5",
-  },
-  {
-    id: "Sarah",
-    name: "Sarah",
-    description: "Other",
-    level: "L7",
   },
 ];
 
@@ -31,9 +26,16 @@ function classNames(...classes: string[]) {
 
 const Technical = () => {
   const router = useRouter();
+
   const [selectedInterviewer, setSelectedInterviewer] = useState(
     interviewers[0]
   );
+
+  const { technicalQuestions, productQuestions } = useKoopStore();
+  const question1 =
+    selectedInterviewer.id === "SDE"
+      ? technicalQuestions[0]
+      : productQuestions[0];
 
   return (
     <AnimatePresence>
@@ -120,10 +122,11 @@ const Technical = () => {
           </div>
           <div>
             <Link
-              href={{
-                pathname: "/technical/[slug]",
-                query: { slug: "my-post", name: selectedInterviewer },
-              }}
+              href={`/technical/${question1.id}`}
+              // href={{
+              //   pathname: "/technical/[slug]1,
+              //   query: { slug: question1.id, questionId: question1.id },
+              // }}
               className="group rounded-full px-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#1E2B3A] text-white hover:[linear-gradient(0deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), #0D2247] no-underline flex gap-x-2  active:scale-95 scale-100 duration-75"
               style={{
                 boxShadow:

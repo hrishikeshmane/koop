@@ -1,47 +1,12 @@
 import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { use, useCallback, useEffect, useRef, useState } from "react";
 import { RadioGroup } from "@headlessui/react";
 import Link from "next/link";
 import Webcam from "react-webcam";
 import { v4 as uuid } from "uuid";
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
-
-const questions = [
-  {
-    id: 1,
-    name: "Behavioral",
-    description: "From LinkedIn, Amazon, Adobe",
-    difficulty: "Easy",
-  },
-  {
-    id: 2,
-    name: "Technical",
-    description: "From Google, Meta, and Apple",
-    difficulty: "Medium",
-  },
-];
-
-const interviewers = [
-  {
-    id: "John",
-    name: "John",
-    description: "Software Engineering",
-    level: "L3",
-  },
-  {
-    id: "Richard",
-    name: "Richard",
-    description: "Product Management",
-    level: "L5",
-  },
-  {
-    id: "Sarah",
-    name: "Sarah",
-    description: "Other",
-    level: "L7",
-  },
-];
+import { Question, useKoopStore } from "../../lib/koopStore";
 
 const ffmpeg = createFFmpeg({
   // corePath: `http://localhost:3000/ffmpeg/dist/ffmpeg-core.js`,
@@ -55,10 +20,6 @@ function classNames(...classes: string[]) {
 }
 
 export default function TechnicalInterviewPage() {
-  const [selected, setSelected] = useState(questions[0]);
-  const [selectedInterviewer, setSelectedInterviewer] = useState(
-    interviewers[0]
-  );
   const [loading, setLoading] = useState(true);
   const webcamRef = useRef<Webcam | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -77,6 +38,33 @@ export default function TechnicalInterviewPage() {
   const [completed, setCompleted] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [generatedFeedback, setGeneratedFeedback] = useState("");
+
+  const router = useRouter();
+  const { slug } = router.query;
+  console.log("slug", slug);
+
+  const {
+    technicalQuestions,
+    hasPreviusQuestion,
+    productQuestions,
+    hasNextQuestion,
+    getNextQuestion,
+    getPreviousQuestion,
+  } = useKoopStore();
+
+  // if questionId starts with "pm", then it's a product questions else it's a technical question
+  const questionListName = slug?.toString().startsWith("pm")
+    ? "product"
+    : "technical";
+
+  const questionsArray = slug?.toString().startsWith("pm")
+    ? productQuestions
+    : technicalQuestions;
+
+  const firstQuestion = questionsArray[0];
+  const question =
+    questionsArray.find((q: Question) => q.id === slug) ?? firstQuestion;
+  console.log("question", question);
 
   useEffect(() => {
     setIsDesktop(window.innerWidth >= 768);
@@ -192,19 +180,19 @@ export default function TechnicalInterviewPage() {
       formData.append("file", output, `${unique_id}.mp3`);
       formData.append("model", "whisper-1");
 
-      const question =
-        selected.name === "Behavioral"
-          ? `Tell me about yourself. Why don${`’`}t you walk me through your resume?`
-          : selectedInterviewer.name === "John"
-          ? "What is a Hash Table, and what is the average case and worst case time for each of its operations?"
-          : selectedInterviewer.name === "Richard"
-          ? "Uber is looking to expand its product line. Talk me through how you would approach this problem."
-          : "You have a 3-gallon jug and 5-gallon jug, how do you measure out exactly 4 gallons?";
+      // const question =
+      //   selected.name === "Behavioral"
+      //     ? `Tell me about yourself. Why don${`’`}t you walk me through your resume?`
+      //     : selectedInterviewer.name === "John"
+      //     ? "What is a Hash Table, and what is the average case and worst case time for each of its operations?"
+      //     : selectedInterviewer.name === "Richard"
+      //     ? "Uber is looking to expand its product line. Talk me through how you would approach this problem."
+      //     : "You have a 3-gallon jug and 5-gallon jug, how do you measure out exactly 4 gallons?";
 
       setStatus("Transcribing");
 
       const upload = await fetch(
-        `/api/transcribe?question=${encodeURIComponent(question)}`,
+        `/api/transcribe?question=${encodeURIComponent(question?.question)}`,
         {
           method: "POST",
           body: formData,
@@ -234,11 +222,7 @@ export default function TechnicalInterviewPage() {
         if (results.transcript.length > 0) {
           const prompt = `Please give feedback on the following interview question: ${question} given the following transcript: ${
             results.transcript
-          }. ${
-            selected.name === "Behavioral"
-              ? "Please also give feedback on the candidate's communication skills. Make sure their response is structured (perhaps using the STAR or PAR frameworks)."
-              : "Please also give feedback on the candidate's communication skills. Make sure they accurately explain their thoughts in a coherent way. Make sure they stay on topic and relevant to the question."
-          } \n\n\ Feedback on the candidate's response:`;
+          }. ${"Please also give feedback on the candidate's communication skills. Make sure they accurately explain their thoughts in a coherent way. Make sure they stay on topic and relevant to the question."} \n\n\ Feedback on the candidate's response:`;
 
           setGeneratedFeedback("");
           const response = await fetch("/api/generate", {
@@ -302,9 +286,9 @@ export default function TechnicalInterviewPage() {
   };
 
   return (
-    <div className="w-full min-h-screen flex flex-col px-4 pt-2 pb-8 md:px-8 md:py-2 bg-[#FCFCFC] relative overflow-x-hidden">
+    <div className="max-w-4xl mx-auto flex flex-col px-4 pt-2 pb-8 md:px-8 md:py-2 bg-[#FCFCFC] relative overflow-x-hidden">
       {completed ? (
-        <div className="w-full flex flex-col max-w-[1080px] mx-auto mt-[10vh] overflow-y-auto pb-8 md:pb-12">
+        <div className="w-full flex flex-col max-w-[1080px] mx-auto mt-[20vh] overflow-y-auto pb-8 md:pb-12">
           <motion.div
             initial={{ y: 20 }}
             animate={{ y: 0 }}
@@ -391,13 +375,14 @@ export default function TechnicalInterviewPage() {
           {recordingPermission ? (
             <div className="w-full flex flex-col max-w-[1080px] mx-auto justify-center">
               <h2 className="text-2xl font-semibold text-left text-[#1D2B3A] mb-2">
-                {selected.name === "Behavioral"
+                {/* {selected.name === "Behavioral"
                   ? `Tell me about yourself. Why don${`’`}t you walk me through your resume?`
                   : selectedInterviewer.name === "John"
                   ? "What is a Hash Table, and what is the average case and worst case time for each of its operations?"
                   : selectedInterviewer.name === "Richard"
                   ? "Uber is looking to expand its product line. Talk me through how you would approach this problem."
-                  : "You have a 3-gallon jug and 5-gallon jug, how do you measure out exactly 4 gallons?"}
+                  : "You have a 3-gallon jug and 5-gallon jug, how do you measure out exactly 4 gallons?"} */}
+                {question.question}
               </h2>
               <span className="text-[14px] leading-[20px] text-[#1a2b3b] font-normal mb-4">
                 {
@@ -649,11 +634,7 @@ export default function TechnicalInterviewPage() {
                 className="relative md:aspect-[16/9] w-full max-w-[1080px] overflow-hidden bg-[#1D2B3A] rounded-lg ring-1 ring-gray-900/5 shadow-md flex flex-col items-center justify-center"
               >
                 <p className="text-white font-medium text-lg text-center max-w-3xl">
-                  Camera permission is denied. We don{`'`}t store your attempts
-                  anywhere, but we understand not wanting to give us access to
-                  your camera. Try again by opening this page in an incognito
-                  window {`(`}or enable permissions in your browser settings
-                  {`)`}.
+                  Camera permission is denied.
                 </p>
               </motion.div>
               <div className="flex flex-row space-x-4 mt-8 justify-end">
@@ -671,6 +652,76 @@ export default function TechnicalInterviewPage() {
           )}
         </div>
       )}
+      {/* next and previous questions buttons */}
+      <div className="flex gap-[15px] mt-8">
+        <div className="flex justify-start">
+          {question && hasPreviusQuestion(questionListName, question.id) && (
+            <Link
+              href={`/technical/${
+                getPreviousQuestion(questionListName, question.id).id
+              }`}
+              // href={{
+              //   pathname: "/technical/[slug]",
+              //   query: {
+              //     slug: getPreviousQuestion(questionListName, question.id).id,
+              //     questionId: getPreviousQuestion(questionListName, question.id)
+              //       .id,
+              //   },
+              // }}
+              className="group rounded-full px-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#f5f7f9] text-[#1E2B3A] no-underline active:scale-95 scale-100 duration-75"
+              style={{
+                boxShadow: "0 1px 1px #0c192714, 0 1px 3px #0c192724",
+              }}
+            >
+              Previous
+            </Link>
+          )}
+        </div>
+        <div className="flex justify-end w-full">
+          {question && hasNextQuestion(questionListName, question.id) && (
+            <Link
+              href={`/technical/${
+                getNextQuestion(questionListName, question.id).id
+              }`}
+              // href={{
+              //   pathname: "/technical/[slug]",
+              //   query: {
+              //     slug: getNextQuestion(questionListName, question.id).id,
+              //     questionId: getNextQuestion(questionListName, question.id).id,
+              //   },
+              // }}
+              className="group rounded-full px-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#1E2B3A] text-white hover:[linear-gradient(0deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), #0D2247] no-underline flex gap-x-2  active:scale-95 scale-100 duration-75"
+              style={{
+                boxShadow:
+                  "0px 1px 4px rgba(13, 34, 71, 0.17), inset 0px 0px 0px 1px #061530, inset 0px 0px 0px 2px rgba(255, 255, 255, 0.1)",
+              }}
+            >
+              <span className=""> Next </span>
+              <svg
+                className="w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M13.75 6.75L19.25 12L13.75 17.25"
+                  stroke="#FFF"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M19 12H4.75"
+                  stroke="#FFF"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </Link>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
