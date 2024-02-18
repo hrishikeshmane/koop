@@ -1,71 +1,65 @@
-import React, { useState } from "react";
-import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
 import { AnimatePresence, motion } from "framer-motion";
+import React, { useState } from "react";
 import { RadioGroup } from "@headlessui/react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
-const questions = [
+const interviewers = [
   {
-    id: 1,
-    name: "Behavioral",
-    description:
-      "Get top behavioral questions form top tech companies like Google, Amazon, Apple",
-    difficulty: "Easy",
+    id: "SDE",
+    name: "John",
+    description: "Software Engineering",
+    level: "L3",
   },
   {
-    id: 2,
-    name: "Technical",
-    description:
-      "Get top technical phone screen questions form top tech companies like Tesla, Doordash, Microsoft",
-    difficulty: "Medium",
+    id: "PM",
+    name: "Richard",
+    description: "Product Management",
+    level: "L5",
   },
   {
-    id: 3,
-    name: "Custom",
-    description:
-      "Paste your job description and get questions tailored to your job description",
-    difficulty: "Medium",
+    id: "Sarah",
+    name: "Sarah",
+    description: "Other",
+    level: "L7",
   },
 ];
-
-const ffmpeg = createFFmpeg({
-  // corePath: `http://localhost:3000/ffmpeg/dist/ffmpeg-core.js`,
-  // I've included a default import above (and files in the public directory), but you can also use a CDN like this:
-  corePath: "https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js",
-  log: true,
-});
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-export default function MockPage() {
-  const [selected, setSelected] = useState(questions[0]);
+const Technical = () => {
+  const router = useRouter();
+  const [selectedInterviewer, setSelectedInterviewer] = useState(
+    interviewers[0]
+  );
+
   return (
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -40 }}
-        key="step-1"
+        key="step-2"
         transition={{
           duration: 0.95,
           ease: [0.165, 0.84, 0.44, 1],
         }}
         className="max-w-lg mx-auto h-screen px-4 lg:px-0 flex flex-col justify-center items-center"
       >
-        <h2 className="text-4xl font-bold text-[#1E2B3A]">
-          Select Interview type
-        </h2>
+        <h2 className="text-4xl font-bold text-[#1E2B3A]">Select a vertical</h2>
         <p className="text-[14px] leading-[20px] text-[#1a2b3b] font-normal my-4 text-center">
-          We have hundreds of questions from top tech companies. Choose a type
-          to get started.
+          Choose a vertical that you want to master.
         </p>
-        <div>
-          <RadioGroup value={selected} onChange={setSelected}>
+        <div className="w-full">
+          <RadioGroup
+            value={selectedInterviewer}
+            onChange={setSelectedInterviewer}
+          >
             <RadioGroup.Label className="sr-only">Server size</RadioGroup.Label>
-            <div className="space-y-4">
-              {questions.map((question) => (
+            <div className="space-y-4 w-full">
+              {interviewers.map((question) => (
                 <RadioGroup.Option
                   key={question.name}
                   value={question}
@@ -85,15 +79,13 @@ export default function MockPage() {
                             as="span"
                             className="font-medium text-gray-900"
                           >
-                            {question.name}
+                            {question.description}
                           </RadioGroup.Label>
                           <RadioGroup.Description
                             as="span"
                             className="text-gray-500"
                           >
-                            <span className="block">
-                              {question.description}
-                            </span>
+                            <span className="block">{question.name}</span>
                           </RadioGroup.Description>
                         </span>
                       </span>
@@ -115,22 +107,23 @@ export default function MockPage() {
         </div>
         <div className="flex gap-[15px] justify-end mt-8">
           <div>
-            <Link
-              href="/"
+            <button
+              type="button"
+              onClick={() => router.back()}
               className="group rounded-full px-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#f5f7f9] text-[#1E2B3A] no-underline active:scale-95 scale-100 duration-75"
               style={{
                 boxShadow: "0 1px 1px #0c192714, 0 1px 3px #0c192724",
               }}
             >
-              Back to home
-            </Link>
+              Previous
+            </button>
           </div>
           <div>
             <Link
-              href={`${selected.name.toLowerCase()}`}
-              //   onClick={() => {
-              //     setStep(2);
-              //   }}
+              href={{
+                pathname: "/technical/[slug]",
+                query: { slug: "my-post", name: selectedInterviewer },
+              }}
               className="group rounded-full px-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#1E2B3A] text-white hover:[linear-gradient(0deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), #0D2247] no-underline flex gap-x-2  active:scale-95 scale-100 duration-75"
               style={{
                 boxShadow:
@@ -165,4 +158,6 @@ export default function MockPage() {
       </motion.div>
     </AnimatePresence>
   );
-}
+};
+
+export default Technical;
