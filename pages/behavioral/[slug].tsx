@@ -26,14 +26,14 @@ export default function TechnicalInterviewPage() {
   const [capturing, setCapturing] = useState(false);
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   const [seconds, setSeconds] = useState(150);
-  const [videoEnded, setVideoEnded] = useState(false);
+  // const [videoEnded, setVideoEnded] = useState(false);
   const [recordingPermission, setRecordingPermission] = useState(true);
   const [cameraLoaded, setCameraLoaded] = useState(false);
   const vidRef = useRef<HTMLVideoElement>(null);
   const [isSubmitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState("Processing");
   const [isSuccess, setIsSuccess] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
+  // const [isVisible, setIsVisible] = useState(true);
   const [isDesktop, setIsDesktop] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -42,6 +42,22 @@ export default function TechnicalInterviewPage() {
   const router = useRouter();
   const { slug } = router.query;
   console.log("slug", slug);
+
+  // when route changes, reset the state
+  useEffect(() => {
+    setLoading(true);
+    setRecordedChunks([]);
+    setCapturing(false);
+    setSeconds(150);
+    // setRecordingPermission(false);
+    setCameraLoaded(false);
+    setSubmitting(false);
+    setStatus("Processing");
+    setIsSuccess(false);
+    setCompleted(false);
+    setTranscript("");
+    setGeneratedFeedback("");
+  }, [slug]);
 
   const {
     behavioralQuestions,

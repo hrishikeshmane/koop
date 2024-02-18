@@ -43,6 +43,21 @@ export default function TechnicalInterviewPage() {
   const { slug } = router.query;
   console.log("slug", slug);
 
+  useEffect(() => {
+    setLoading(true);
+    setRecordedChunks([]);
+    setCapturing(false);
+    setSeconds(150);
+    // setRecordingPermission(false);
+    setCameraLoaded(false);
+    setSubmitting(false);
+    setStatus("Processing");
+    setIsSuccess(false);
+    setCompleted(false);
+    setTranscript("");
+    setGeneratedFeedback("");
+  }, [slug]);
+
   const {
     technicalQuestions,
     hasPreviusQuestion,
