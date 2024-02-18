@@ -113,7 +113,7 @@ export default function Home() {
               }}
             >
               <Link
-                href="/mock"
+                href="/home"
                 className="group rounded-full px-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#f5f7f9] text-[#1E2B3A] no-underline active:scale-95 scale-100 duration-75"
                 style={{
                   boxShadow: "0 1px 1px #0c192714, 0 1px 3px #0c192724",
@@ -173,7 +173,7 @@ export default function Home() {
           data-transition-in
           className="z-50 fixed top-0 right-[-2px] w-[80%] md:w-1/2 h-screen bg-[#c3e4ff]"
         ></motion.canvas> */}
-        <div className="h-[60px] bg-[#1D2B3A] fixed bottom-0 z-20 w-full flex flex-row items-center justify-evenly">
+        {/* <div className="h-[60px] bg-[#1D2B3A] fixed bottom-0 z-20 w-full flex flex-row items-center justify-evenly">
           <p className="text-white/80 text-base md:text-lg font-semibold md:leading-[60px] whitespace-nowrap flex flex-row">
             Interviews from
           </p>
@@ -536,7 +536,7 @@ export default function Home() {
               fill="white"
             />
           </svg>
-        </div>
+        </div> */}
       </div>
     </AnimatePresence>
   );

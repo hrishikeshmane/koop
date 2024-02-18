@@ -13,30 +13,38 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter } from "next/router";
+import { useKoopStore } from "@/lib/koopStore";
+
+const dummyQuestions = [
+  "1. Can you explain the key differences between Next.js and React, and how these differences impact the development of web applications?",
+  "2. Describe a project where you had to integrate frontend interfaces with backend services using GraphQL. What challenges did you face, and how did you overcome them?",
+  "3. How would you approach implementing responsive …iences across different devices and screen sizes?",
+  "4. How do you ensure cross-browser compatibility and responsive design in your web applications? Can you provide examples of tools or techniques you have used to achieve this?",
+  "5. How do you stay updated on emerging trends and technologies in frontend development? Can you discuss a recent technology or technique that you have learned and applied in your work?",
+];
 
 const Custom = () => {
   const [jobDescription, setjobDescription] = useState("");
   const [jobDescriptionReady, setJobDescriptionReady] = useState(false);
   const [typeValue, setTypeValue] = useState("technical");
-  const [questionsData, setQuestionsData] = useState([
-    // "1. Can you explain the advantages of using Next.js… user experience and performance in our projects?",
-    // "2. Can you walk us through a recent project where …phQL, and what were the key challenges you faced?",
-    // "3. How would you approach implementing responsive …iences across different devices and screen sizes?",
-    // "4. Describe a situation where you had to optimize …u improve the application's speed and efficiency?",
-    // "5. In your opinion, what role does testing play in… the types of tests you would prioritize and why?",
-  ]);
+  const [loading, setLoading] = useState(false);
+  // const [questionsData, setQuestionsData] = useState([
+  // dummyQuestions
+  // ]);
   const router = useRouter();
 
+  const { customQuestions, setCustomQuestions } = useKoopStore();
+
   useEffect(() => {
-    console.log("questionsData", questionsData);
-  }, [questionsData]);
+    console.log("customQuestions", customQuestions);
+  }, [customQuestions]);
 
   const continueHandler = async () => {
     // if (jobDescription === "") {
     // }
     setJobDescriptionReady(true);
-
-    const questions = await fetch("/api/customgen", {
+    setLoading(true);
+    await fetch("/api/customgen", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -47,10 +55,18 @@ const Custom = () => {
       }),
     })
       .then((res) => res.json())
+      .catch((err) => console.log(err))
       .then((data) => {
-        setQuestionsData(data);
+        setCustomQuestions(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setCustomQuestions(dummyQuestions);
       });
   };
+
+  const question1 = customQuestions[0];
 
   return (
     <AnimatePresence>
@@ -177,17 +193,20 @@ const Custom = () => {
           </div>
         ) : (
           <div className="w-full flex flex-col justify-center items-center">
-            {questionsData.map((question, index) => {
+            {customQuestions.map((question, index) => {
               return (
                 <Link
-                  href={{
-                    pathname: "/custom/[slug]",
-                    query: { slug: "question", question: question },
-                  }}
+                  href={`/custom/${question.id}`}
+                  // href={{
+                  //   pathname: "/custom/[slug]",
+                  //   query: { slug: "question", question: question.question },
+                  // }}
                   key={index}
                   className="w-full p-4 rounded-md cursor-pointer flex flex-col border my-2 justify-center items-center"
                 >
-                  <h2 className="text-lg font-bold mb-2">{question}</h2>
+                  <h2 className="text-lg font-bold mb-2">
+                    {question.question}
+                  </h2>
                 </Link>
               );
             })}

@@ -6,7 +6,7 @@ import Link from "next/link";
 import Webcam from "react-webcam";
 import { v4 as uuid } from "uuid";
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
-import { Question, useKoopStore } from "@/lib/koopStore";
+import { Question, useKoopStore } from "../../lib/koopStore";
 
 const ffmpeg = createFFmpeg({
   // corePath: `http://localhost:3000/ffmpeg/dist/ffmpeg-core.js`,
@@ -26,14 +26,14 @@ export default function TechnicalInterviewPage() {
   const [capturing, setCapturing] = useState(false);
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   const [seconds, setSeconds] = useState(150);
-  //   const [videoEnded, setVideoEnded] = useState(false);
+  // const [videoEnded, setVideoEnded] = useState(false);
   const [recordingPermission, setRecordingPermission] = useState(true);
   const [cameraLoaded, setCameraLoaded] = useState(false);
   const vidRef = useRef<HTMLVideoElement>(null);
   const [isSubmitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState("Processing");
   const [isSuccess, setIsSuccess] = useState(false);
-  //   const [isVisible, setIsVisible] = useState(true);
+  // const [isVisible, setIsVisible] = useState(true);
   const [isDesktop, setIsDesktop] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -41,10 +41,11 @@ export default function TechnicalInterviewPage() {
 
   const router = useRouter();
   const { slug } = router.query;
+  console.log("slug", slug);
 
+  // when route changes, reset the state
   useEffect(() => {
-    console.log("slug", slug);
-    // setLoading(true);
+    setLoading(true);
     setRecordedChunks([]);
     setCapturing(false);
     setSeconds(150);
@@ -59,28 +60,23 @@ export default function TechnicalInterviewPage() {
   }, [slug]);
 
   const {
-    customQuestions,
+    behavioralQuestions,
     hasPreviusQuestion,
     hasNextQuestion,
     getNextQuestion,
     getPreviousQuestion,
   } = useKoopStore();
 
-  useEffect(() => {
-    console.log("customQuestions", customQuestions);
-  });
-
+  // if questionId starts with "pm", then it's a product questions else it's a technical question
   //   const questionListName = slug?.toString().startsWith("pm")
-  //   ? "product"
-  //   : "technical";
+  //     ? "product"
+  //     : "technical";
 
-  // const questionsArray = slug?.toString().startsWith("pm")
-  //   ? productQuestions
-  //   : technicalQuestions;
+  const questionsArray = behavioralQuestions;
 
-  const firstQuestion = customQuestions[0];
+  const firstQuestion = questionsArray[0];
   const question =
-    customQuestions.find((q: Question) => q.id === slug) ?? firstQuestion;
+    questionsArray.find((q: Question) => q.id === slug) ?? firstQuestion;
   console.log("question", question);
 
   useEffect(() => {
@@ -151,7 +147,7 @@ export default function TechnicalInterviewPage() {
     return () => {
       clearInterval(timer);
     };
-  });
+  }, [capturing, seconds, handleStopCaptureClick]);
 
   const handleDownload = async () => {
     if (recordedChunks.length) {
@@ -209,7 +205,7 @@ export default function TechnicalInterviewPage() {
       setStatus("Transcribing");
 
       const upload = await fetch(
-        `/api/transcribe?question=${encodeURIComponent(question.question)}`,
+        `/api/transcribe?question=${encodeURIComponent(question?.question)}`,
         {
           method: "POST",
           body: formData,
@@ -239,12 +235,7 @@ export default function TechnicalInterviewPage() {
         if (results.transcript.length > 0) {
           const prompt = `Please give feedback on the following interview question: ${question} given the following transcript: ${
             results.transcript
-          }. ${
-            // selected.name === "Behavioral"
-            //   ? "Please also give feedback on the candidate's communication skills. Make sure their response is structured (perhaps using the STAR or PAR frameworks)."
-            //   :
-            "Please also give feedback on the candidate's communication skills. Make sure they accurately explain their thoughts in a coherent way. Make sure they stay on topic and relevant to the question."
-          } \n\n\ Feedback on the candidate's response:`;
+          }. ${"Please also give feedback on the candidate's communication skills. Make sure they accurately explain their thoughts in a coherent way. Make sure they stay on topic and relevant to the question."} \n\n\ Feedback on the candidate's response:`;
 
           setGeneratedFeedback("");
           const response = await fetch("/api/generate", {
@@ -306,6 +297,10 @@ export default function TechnicalInterviewPage() {
       setCameraLoaded(true);
     }, 1000);
   };
+
+  useEffect(() => {
+    restartVideo();
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col px-4 pt-2 pb-8 md:px-8 md:py-2 bg-[#FCFCFC] relative overflow-x-hidden">
@@ -674,7 +669,6 @@ export default function TechnicalInterviewPage() {
           )}
         </div>
       )}
-
       {/* next and previous questions buttons */}
       <div className="flex gap-[15px] mt-8">
         <div className="flex justify-start">
@@ -695,9 +689,11 @@ export default function TechnicalInterviewPage() {
           >
             <span className=""> Home </span>
           </Link>
-          {question && hasPreviusQuestion("custom", question.id) && (
+          {question && hasPreviusQuestion("behavioral", question.id) && (
             <Link
-              href={`/custom/${getPreviousQuestion("custom", question.id).id}`}
+              href={`/behavioral/${
+                getPreviousQuestion("behavioral", question.id).id
+              }`}
               // href={{
               //   pathname: "/technical/[slug]",
               //   query: {
@@ -716,9 +712,11 @@ export default function TechnicalInterviewPage() {
           )}
         </div>
         <div className="flex justify-end w-full">
-          {question && hasNextQuestion("custom", question.id) && (
+          {question && hasNextQuestion("behavioral", question.id) && (
             <Link
-              href={`/custom/${getNextQuestion("custom", question.id).id}`}
+              href={`/behavioral/${
+                getNextQuestion("behavioral", question.id).id
+              }`}
               // href={{
               //   pathname: "/technical/[slug]",
               //   query: {
