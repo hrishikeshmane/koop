@@ -9,7 +9,9 @@ export type KoopStore = {
   behavioralQuestions: Question[];
   technicalQuestions: Question[];
   productQuestions: Question[];
+  customQuestions: Question[];
 
+  setCustomQuestions: (questions: string[]) => void;
   hasNextQuestion: (list: string, currentId: string) => boolean;
   hasPreviusQuestion: (list: string, currentId: string) => boolean;
   getNextQuestion: (list: string, currentId: string) => Question;
@@ -241,7 +243,16 @@ export const useKoopStore = create<KoopStore>((set, get) => ({
       question: "Tell me about a product you admire. What makes it great?",
     },
   ],
+  customQuestions: [],
 
+  setCustomQuestions: (questions: string[]) => {
+    // take array of string and convert to array of Question. id should start with cq and increment by 01
+    const customQuestions = questions.map((q, i) => ({
+      id: `cq${i + 1}`,
+      question: q,
+    }));
+    set({ customQuestions: customQuestions });
+  },
   hasNextQuestion: (list: string, currentId: string) => {
     if (list === "behavioral") {
       const questions = get().behavioralQuestions;
@@ -250,6 +261,11 @@ export const useKoopStore = create<KoopStore>((set, get) => ({
     }
     if (list === "product") {
       const questions = get().productQuestions;
+      const index = questions.findIndex((q) => q.id === currentId);
+      return index < questions.length - 1;
+    }
+    if (list === "custom") {
+      const questions = get().customQuestions;
       const index = questions.findIndex((q) => q.id === currentId);
       return index < questions.length - 1;
     }
@@ -269,6 +285,11 @@ export const useKoopStore = create<KoopStore>((set, get) => ({
       const index = questions.findIndex((q) => q.id === currentId);
       return index > 0;
     }
+    if (list === "custom") {
+      const questions = get().customQuestions;
+      const index = questions.findIndex((q) => q.id === currentId);
+      return index > 0;
+    }
 
     const questions = get().technicalQuestions;
     const index = questions.findIndex((q) => q.id === currentId);
@@ -285,6 +306,11 @@ export const useKoopStore = create<KoopStore>((set, get) => ({
       const index = questions.findIndex((q) => q.id === currentId);
       return questions[index + 1];
     }
+    if (list === "custom") {
+      const questions = get().customQuestions;
+      const index = questions.findIndex((q) => q.id === currentId);
+      return questions[index + 1];
+    }
 
     const questions = get().technicalQuestions;
     const index = questions.findIndex((q) => q.id === currentId);
@@ -298,6 +324,11 @@ export const useKoopStore = create<KoopStore>((set, get) => ({
     }
     if (list === "product") {
       const questions = get().productQuestions;
+      const index = questions.findIndex((q) => q.id === currentId);
+      return questions[index - 1];
+    }
+    if (list === "custom") {
+      const questions = get().customQuestions;
       const index = questions.findIndex((q) => q.id === currentId);
       return questions[index - 1];
     }

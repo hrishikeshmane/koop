@@ -288,6 +288,8 @@ export default function TechnicalInterviewPage() {
     }, 1000);
   };
 
+  // const question = router.query.question;
+
   return (
     <div className="max-w-4xl mx-auto flex flex-col px-4 pt-2 pb-8 md:px-8 md:py-2 bg-[#FCFCFC] relative overflow-x-hidden">
       {completed ? (
@@ -659,26 +661,11 @@ export default function TechnicalInterviewPage() {
       {/* next and previous questions buttons */}
       <div className="flex gap-[15px] mt-8">
         <div className="flex justify-start">
-          <Link
-            href={`/home`}
-            // href={{
-            //   pathname: "/technical/[slug]",
-            //   query: {
-            //     slug: getNextQuestion(questionListName, question.id).id,
-            //     questionId: getNextQuestion(questionListName, question.id).id,
-            //   },
-            // }}
-            className="group rounded-full px-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#1E2B3A] text-white hover:[linear-gradient(0deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), #0D2247] no-underline flex gap-x-2  active:scale-95 scale-100 duration-75"
-            style={{
-              boxShadow:
-                "0px 1px 4px rgba(13, 34, 71, 0.17), inset 0px 0px 0px 1px #061530, inset 0px 0px 0px 2px rgba(255, 255, 255, 0.1)",
-            }}
-          >
-            <span className=""> Home </span>
-          </Link>
           {question && hasPreviusQuestion("custom", question.id) && (
             <Link
-              href={`/custom/${getPreviousQuestion("custom", question.id).id}`}
+              href={`/technical/${
+                getPreviousQuestion("custom", question.id).id
+              }`}
               // href={{
               //   pathname: "/technical/[slug]",
               //   query: {
@@ -699,7 +686,7 @@ export default function TechnicalInterviewPage() {
         <div className="flex justify-end w-full">
           {question && hasNextQuestion("custom", question.id) && (
             <Link
-              href={`/custom/${getNextQuestion("custom", question.id).id}`}
+              href={`/technical/${getNextQuestion("custom", question.id).id}`}
               // href={{
               //   pathname: "/technical/[slug]",
               //   query: {
